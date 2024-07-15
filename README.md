@@ -6,7 +6,7 @@ Currently only supports extracting, DB creation is a work in progress
 
 ## Usage
 
-- Enter a commandline prompt, run `FlatOut2DBExtractor.exe (filename)`
+- Enter a commandline prompt, run `FlatOut2DBExtractor_gcp.exe (filename)`
 - There will now be a folder with the extracted contents of the input file
 - Enjoy, nya~ :3
 
