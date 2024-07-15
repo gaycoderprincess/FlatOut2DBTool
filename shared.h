@@ -21,7 +21,8 @@ enum eDBValueType {
 	DBVALUE_VECTOR2 = 9,
 	DBVALUE_VECTOR3 = 10,
 	DBVALUE_VECTOR4 = 11,
-	DBVALUE_NODEARRAY = 12,
+	DBVALUE_NODE = 12,
+	DBVALUE_MAX_COUNT
 };
 const char* aValueTypeNames[] = {
 		nullptr,
@@ -38,6 +39,33 @@ const char* aValueTypeNames[] = {
 		"vec4",
 		"node*",
 };
+
+bool IsDBTypeVector(int type) {
+	return type >= DBVALUE_VECTOR2 && type <= DBVALUE_VECTOR4;
+}
+
+size_t GetDBValueTypeSize(int type) {
+	switch (type) {
+		case DBVALUE_CHAR:
+		case DBVALUE_STRING:
+			return 1;
+		case DBVALUE_NODE:
+			return 2;
+		case DBVALUE_BOOL:
+		case DBVALUE_RGBA:
+		case DBVALUE_INT:
+		case DBVALUE_FLOAT:
+			return 4;
+		case DBVALUE_VECTOR2:
+			return 4 * 2;
+		case DBVALUE_VECTOR3:
+			return 4 * 3;
+		case DBVALUE_VECTOR4:
+			return 4 * 4;
+		default:
+			return 0;
+	}
+}
 
 enum eDBArrayType {
 	DBARRAY_SINGLE,

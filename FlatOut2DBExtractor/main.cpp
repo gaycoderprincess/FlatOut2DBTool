@@ -18,26 +18,7 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 	}
 
 	size_t GetValueTypeSize() const {
-		switch (valueType) {
-			case DBVALUE_CHAR:
-			case DBVALUE_STRING:
-				return 1;
-			case DBVALUE_NODEARRAY:
-				return 2;
-			case DBVALUE_BOOL:
-			case DBVALUE_RGBA:
-			case DBVALUE_INT:
-			case DBVALUE_FLOAT:
-				return 4;
-			case DBVALUE_VECTOR2:
-				return 4 * 2;
-			case DBVALUE_VECTOR3:
-				return 4 * 3;
-			case DBVALUE_VECTOR4:
-				return 4 * 4;
-			default:
-				return 0;
-		}
+		return GetDBValueTypeSize(valueType);
 	}
 
 	auto GetAsChar(int offset) {
@@ -103,7 +84,7 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 				}
 				outFile << " }";
 			} break;
-			case DBVALUE_NODEARRAY: {
+			case DBVALUE_NODE: {
 				outFile << "\"";
 				outFile << GetFullPathForDBNode(GetAsShort(index));
 				outFile << "\"";
@@ -286,7 +267,7 @@ bool ParseDB(const char* fileName) {
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		WriteConsole("Usage: FlatOut2DBTool_gcp.exe <filename>");
+		WriteConsole("Usage: FlatOut2DBExtractor_gcp.exe <filename>");
 		return 0;
 	}
 	if (!ParseDB(argv[1])) {
