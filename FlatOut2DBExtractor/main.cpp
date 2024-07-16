@@ -209,7 +209,7 @@ struct tDBNode {
 		auto filePath = outFolder + "/" + GetFullPath();
 		if (DoesAnythingDependOnMe()) std::filesystem::create_directory(filePath);
 
-		if (dataCount > 0) {
+		//if (dataCount > 0) {
 			auto outFile = std::ofstream(filePath + ".h");
 			outFile << "// parent offset ";
 			outFile << parentOffset;
@@ -217,11 +217,15 @@ struct tDBNode {
 			outFile << nextNodeOffset;
 			outFile << ", prev offset ";
 			outFile << prevNodeOffset;
+			outFile << ", data count ";
+			outFile << dataCount;
+			outFile << ", vtable ";
+			outFile << vtable;
 			outFile << "\n";
 			for (int j = 0; j < dataCount; j++) {
 				GetValue(j)->WriteToFile(outFile);
 			}
-		}
+		//}
 	}
 };
 

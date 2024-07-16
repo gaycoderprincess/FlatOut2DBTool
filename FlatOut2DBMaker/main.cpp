@@ -36,9 +36,9 @@ struct tDBNodeTemp {
 	std::string name;
 	std::vector<tDBValueTemp> values;
 	int parentNodeId = 0;
-	size_t baseFilePosition;
-	size_t nameFilePosition;
-	size_t valuesFilePosition;
+	size_t baseFilePosition = 0;
+	size_t nameFilePosition = 0;
+	size_t valuesFilePosition = 0;
 };
 std::vector<tDBNodeTemp> aNodes;
 
@@ -431,6 +431,29 @@ tDBNodeTemp* GetNextNodeWithParent(int id, int parentId) {
 	return &aNodes[id];
 }
 
+bool DoesNodeBelongToParentRecursive(int nodeId, int parentId) {
+	auto node = &aNodes[nodeId];
+	if (node->parentNodeId == parentId) return true;
+	if (node->parentNodeId == nodeId && nodeId != parentId) return false;
+	return DoesNodeBelongToParentRecursive(node->parentNodeId, parentId);
+}
+
+int GetNumDataNodesBelongingToParentRecursive(int parentId) {
+	int count = 0;
+	for (int i = 0; i < aNodes.size(); i++) {
+		if (!aNodes[i].values.empty() && DoesNodeBelongToParentRecursive(i, parentId)) count++;
+	}
+	return count;
+}
+
+int GetNumDataNodesBelongingToParentRecursive(int parentId) {
+	int count = 0;
+	for (int i = 0; i < aNodes.size(); i++) {
+		if (!aNodes[i].values.empty() && DoesNodeBelongToParentRecursive(i, parentId)) count++;
+	}
+	return count;
+}
+
 bool WriteDB(const std::string& fileName) {
 	dbBaseFolderPath = fileName + " extracted";
 	if (!std::filesystem::is_directory(dbBaseFolderPath)) return false;
@@ -459,38 +482,41 @@ bool WriteDB(const std::string& fileName) {
 		tDBNode nodeOut;
 		nodeOut.dataCount = node.values.size();
 		nodeOut.pNameString = (uint32_t)node.name.c_str();
-		nodeOut.pValues = (uint32_t)&node.values[0];
+		if (!node.values.empty()) nodeOut.pValues = (uint32_t)&node.values[0];
 		int myId = &node - &aNodes[0];
 		nodeOut.parentOffset = node.parentNodeId - myId;
 		nodeOut.prevNodeOffset = (GetPrevNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId;
-		nodeOut.nextNodeOffset = (GetNextNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId - 1;
+		//nodeOut.nextNodeOffset = (GetNextNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId - 1;
+		nodeOut.nextNodeOffset = GetNumDataNodesBelongingToParentRecursive(myId);
+		if (nodeOut.parentOffset == myId) nodeOut.nextNodeOffset = aNodes.size();
 		fout.write((char*)&nodeOut, sizeof(tDBNode));
 	}
 
 	for (auto& node : aNodes) {
-		node.valuesFilePosition = fout.tellp();
-		for (auto& value : node.values) {
-			value.baseFilePosition = fout.tellp();
+		if (!node.values.empty()) {
+			node.valuesFilePosition = fout.tellp();
+			for (auto &value: node.values) {
+				value.baseFilePosition = fout.tellp();
 
-			// write value header
-			tDBValue valueOut;
-			valueOut.valueType = value.type;
-			valueOut.size = value.arrayCount * GetDBValueTypeSize(value.type);
-			valueOut.arrayType = value.arrayCount > 1 ? 1 : 0;
-			if (value.type == DBVALUE_STRING) valueOut.arrayType = 2; // strings are always variable length arrays for now
-			fout.write((char*)&valueOut, sizeof(tDBValue));
+				// write value header
+				tDBValue valueOut;
+				valueOut.valueType = value.type;
+				valueOut.size = value.arrayCount * GetDBValueTypeSize(value.type);
+				valueOut.arrayType = value.arrayCount > 1 ? 1 : 0;
+				if (value.type == DBVALUE_STRING) valueOut.arrayType = 2; // strings are always variable length arrays for now
+				fout.write((char *) &valueOut, sizeof(tDBValue));
 
-			// gather ids for each node from the pointer list
-			if (value.type == DBVALUE_NODE) {
-				auto data = (tDBNodeTemp**)value.data;
-				for (int i = 0; i < value.arrayCount; i++) {
-					int id = data[i] - &aNodes[0];
-					fout.write((char*)&id, 2);
+				// gather ids for each node from the pointer list
+				if (value.type == DBVALUE_NODE) {
+					auto data = (tDBNodeTemp **) value.data;
+					for (int i = 0; i < value.arrayCount; i++) {
+						int id = data[i] - &aNodes[0];
+						fout.write((char *) &id, 2);
+					}
+				} else {
+					// write variable length data
+					fout.write((char *) value.data, valueOut.size);
 				}
-			}
-			else {
-				// write variable length data
-				fout.write((char*)value.data, valueOut.size);
 			}
 		}
 
@@ -511,6 +537,7 @@ bool WriteDB(const std::string& fileName) {
 
 		// write values offset
 		offset = node.valuesFilePosition - node.baseFilePosition;
+		if (!node.valuesFilePosition) offset = 0;
 		fout.write((char*)&offset, sizeof(offset));
 
 		for (auto& value : node.values) {
