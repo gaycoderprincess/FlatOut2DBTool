@@ -442,6 +442,8 @@ bool WriteDB(const std::string& fileName) {
 	gHeader.identifier = 0x1A424450;
 	gHeader.version = 512;
 
+	WriteConsole("Reading...");
+
 	// read the structure first, then read data
 	for (const auto& entry : std::filesystem::directory_iterator(dbBaseFolderPath)) {
 		ParseDBNode(entry, false);
@@ -449,6 +451,10 @@ bool WriteDB(const std::string& fileName) {
 	for (const auto& entry : std::filesystem::directory_iterator(dbBaseFolderPath)) {
 		ParseDBNode(entry, true);
 	}
+
+	WriteConsole("Files read");
+
+	WriteConsole("Creating...");
 
 	gHeader.numNodes = aNodes.size();
 	fout.write((char*)&gHeader, sizeof(gHeader));
@@ -470,6 +476,8 @@ bool WriteDB(const std::string& fileName) {
 		else nodeOut.lastChildOffset = 0;
 		fout.write((char*)&nodeOut, sizeof(tDBNode));
 	}
+
+	WriteConsole("Writing tables...");
 
 	for (auto& node : aNodes) {
 		if (!node.values.empty()) {
@@ -508,6 +516,8 @@ bool WriteDB(const std::string& fileName) {
 		}
 	}
 
+	WriteConsole("Fixing offsets...");
+
 	for (auto& node : aNodes) {
 		fout.seekp(node.baseFilePosition + 0xC); // seek to name offset
 		// write name offset
@@ -525,6 +535,8 @@ bool WriteDB(const std::string& fileName) {
 			fout.write((char*)&offset, sizeof(offset));
 		}
 	}
+
+	WriteConsole("Database created");
 
 	return true;
 }
