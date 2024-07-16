@@ -431,29 +431,6 @@ tDBNodeTemp* GetNextNodeWithParent(int id, int parentId) {
 	return &aNodes[id];
 }
 
-bool DoesNodeBelongToParentRecursive(int nodeId, int parentId) {
-	auto node = &aNodes[nodeId];
-	if (node->parentNodeId == parentId) return true;
-	if (node->parentNodeId == nodeId && nodeId != parentId) return false;
-	return DoesNodeBelongToParentRecursive(node->parentNodeId, parentId);
-}
-
-int GetNumDataNodesBelongingToParentRecursive(int parentId) {
-	int count = 0;
-	for (int i = 0; i < aNodes.size(); i++) {
-		if (!aNodes[i].values.empty() && DoesNodeBelongToParentRecursive(i, parentId)) count++;
-	}
-	return count;
-}
-
-int GetNumDataNodesBelongingToParentRecursive(int parentId) {
-	int count = 0;
-	for (int i = 0; i < aNodes.size(); i++) {
-		if (!aNodes[i].values.empty() && DoesNodeBelongToParentRecursive(i, parentId)) count++;
-	}
-	return count;
-}
-
 bool WriteDB(const std::string& fileName) {
 	dbBaseFolderPath = fileName + " extracted";
 	if (!std::filesystem::is_directory(dbBaseFolderPath)) return false;
@@ -486,9 +463,7 @@ bool WriteDB(const std::string& fileName) {
 		int myId = &node - &aNodes[0];
 		nodeOut.parentOffset = node.parentNodeId - myId;
 		nodeOut.prevNodeOffset = (GetPrevNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId;
-		//nodeOut.nextNodeOffset = (GetNextNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId - 1;
-		nodeOut.nextNodeOffset = GetNumDataNodesBelongingToParentRecursive(myId);
-		if (nodeOut.parentOffset == myId) nodeOut.nextNodeOffset = aNodes.size();
+		nodeOut.nextNodeOffset = (GetNextNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId - 1;
 		fout.write((char*)&nodeOut, sizeof(tDBNode));
 	}
 

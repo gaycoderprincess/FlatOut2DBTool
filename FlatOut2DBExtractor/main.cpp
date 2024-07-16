@@ -217,10 +217,6 @@ struct tDBNode {
 			outFile << nextNodeOffset;
 			outFile << ", prev offset ";
 			outFile << prevNodeOffset;
-			outFile << ", data count ";
-			outFile << dataCount;
-			outFile << ", vtable ";
-			outFile << vtable;
 			outFile << "\n";
 			for (int j = 0; j < dataCount; j++) {
 				GetValue(j)->WriteToFile(outFile);
