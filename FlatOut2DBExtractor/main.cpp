@@ -211,6 +211,13 @@ struct tDBNode {
 
 		if (dataCount > 0) {
 			auto outFile = std::ofstream(filePath + ".h");
+			outFile << "// parent offset ";
+			outFile << parentOffset;
+			outFile << ", next offset ";
+			outFile << nextNodeOffset;
+			outFile << ", prev offset ";
+			outFile << prevNodeOffset;
+			outFile << "\n";
 			for (int j = 0; j < dataCount; j++) {
 				GetValue(j)->WriteToFile(outFile);
 			}
