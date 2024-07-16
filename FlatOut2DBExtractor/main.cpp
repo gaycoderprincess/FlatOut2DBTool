@@ -150,7 +150,7 @@ bool DoesNodeHaveChildren(tDBNode* node);
 struct tDBNode {
 	uint32_t vtable;			// +0
 	int16_t parentOffset;		// +4
-	int16_t nextNodeOffset;		// +6 amount of nodes to get to the next one in the folder
+	int16_t lastChildOffset;	// +6
 	int16_t prevNodeOffset;		// +8 usually -1, 0 if it's the first one, amount of nodes to get to the previous one in the folder
 	uint16_t dataCount;			// +A
 	uint32_t pNameString;		// +C
@@ -213,13 +213,6 @@ struct tDBNode {
 
 		if (dataCount > 0 || !DoesNodeHaveChildren(this)) {
 			auto outFile = std::ofstream(filePath + ".h");
-			outFile << "// parent offset ";
-			outFile << parentOffset;
-			outFile << ", next offset ";
-			outFile << nextNodeOffset;
-			outFile << ", prev offset ";
-			outFile << prevNodeOffset;
-			outFile << "\n";
 			for (int j = 0; j < dataCount; j++) {
 				GetValue(j)->WriteToFile(outFile);
 			}

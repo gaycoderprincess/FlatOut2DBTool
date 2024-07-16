@@ -13,7 +13,7 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 struct tDBNode {
 	uint32_t vtable = 0;		// +0
 	int16_t parentOffset = 0;	// +4
-	int16_t nextNodeOffset = 0;	// +6 amount of nodes to get to the next one in the folder
+	int16_t lastChildOffset = 0;// +6
 	int16_t prevNodeOffset = 0;	// +8 usually -1, 0 if it's the first one, amount of nodes to get to the previous one in the folder
 	uint16_t dataCount = 0;		// +A
 	uint32_t pNameString = 0;	// +C
@@ -422,13 +422,14 @@ tDBNodeTemp* GetPrevNodeWithParent(int id, int parentId) {
 	return &aNodes[id];
 }
 
-tDBNodeTemp* GetNextNodeWithParent(int id, int parentId) {
+tDBNodeTemp* GetLastNodeWithDirectParent(int id) {
+	tDBNodeTemp* node = nullptr;
 	auto i = id + 1;
 	while (i < aNodes.size()) {
-		if (aNodes[i].parentNodeId == parentId) return &aNodes[i];
+		if (aNodes[i].parentNodeId == id) node = &aNodes[i];
 		i++;
 	}
-	return &aNodes[id];
+	return node;
 }
 
 bool WriteDB(const std::string& fileName) {
@@ -463,7 +464,10 @@ bool WriteDB(const std::string& fileName) {
 		int myId = &node - &aNodes[0];
 		nodeOut.parentOffset = node.parentNodeId - myId;
 		nodeOut.prevNodeOffset = (GetPrevNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId;
-		nodeOut.nextNodeOffset = (GetNextNodeWithParent(myId, node.parentNodeId) - &aNodes[0]) - myId - 1;
+		if (auto lastNodeWithParent = GetLastNodeWithDirectParent(myId)) {
+			nodeOut.lastChildOffset = (lastNodeWithParent - &node);
+		}
+		else nodeOut.lastChildOffset = 0;
 		fout.write((char*)&nodeOut, sizeof(tDBNode));
 	}
 
