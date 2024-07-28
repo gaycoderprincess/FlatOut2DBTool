@@ -63,7 +63,9 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 				outFile << GetAsInt(index);
 			} break;
 			case DBVALUE_FLOAT: {
-				outFile << GetAsFloat(index);
+				auto value = GetAsFloat(index);
+				if (std::abs(value) < 0.00001) value = 0;
+				outFile << value;
 			} break;
 			case DBVALUE_RGBA: {
 				outFile << "{ ";
@@ -79,7 +81,9 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 				int valueCount = (valueType - DBVALUE_VECTOR2) + 2;
 				outFile << "{ ";
 				for (int i = 0; i < valueCount; i++) {
-					outFile << GetAsFloat((index * valueCount) + i);
+					auto value = GetAsFloat((index * valueCount) + i);
+					if (std::abs(value) < 0.00001) value = 0;
+					outFile << value;
 					if (i < valueCount - 1) outFile << ", ";
 				}
 				outFile << " }";
@@ -103,7 +107,10 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 			outFile << "*";
 		}
 		outFile << " ";
-		outFile << GetName();
+		auto name = (std::string)GetName();
+		std::replace(name.begin(), name.end(), '[', '(');
+		std::replace(name.begin(), name.end(), ']', ')');
+		outFile << name;
 		if (arrayType == DBARRAY_FIXED) {
 			// const char[i] for fixed strings
 			if (valueType == DBVALUE_STRING) {

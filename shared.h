@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstdint>
+#include <algorithm>
 
 void WriteConsole(const std::string& str) {
 	static auto& out = std::cout;

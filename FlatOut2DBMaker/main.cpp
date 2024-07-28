@@ -100,7 +100,12 @@ bool GetDBValueVector(std::string string, T* data, int valueCount) {
 	string.erase(string.begin(), string.begin() + 2);
 
 	for (int i = 0; i < valueCount; i++) {
-		data[i] = std::stof(string);
+		auto tmpString = string;
+		auto comma = tmpString.find(',');
+		if (comma != std::string::npos) {
+			tmpString.erase(tmpString.begin() + comma, tmpString.end());
+		}
+		data[i] = std::stof(tmpString);
 
 		// find next value
 		if (i + 1 < valueCount) {
@@ -462,6 +467,9 @@ bool WriteDB(const std::string& fileName) {
 	// write nodes
 	for (auto& node : aNodes) {
 		node.baseFilePosition = fout.tellp();
+
+		std::replace(node.name.begin(), node.name.end(), '(', '[');
+		std::replace(node.name.begin(), node.name.end(), ')', ']');
 
 		tDBNode nodeOut;
 		nodeOut.dataCount = node.values.size();
