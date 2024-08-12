@@ -286,8 +286,13 @@ int main(int argc, char *argv[]) {
 		WriteConsole("Usage: FlatOut2DBExtractor_gcp.exe <filename>");
 		return 0;
 	}
-	if (!ParseDB(argv[1])) {
-		WriteConsole("Failed to load binary database " + (std::string)argv[1] + "!");
+	std::string sFileName = argv[1];
+	if (!std::filesystem::exists(sFileName)) {
+		WriteConsole("Failed to load " + std::filesystem::absolute(sFileName).string() + "! (File doesn't exist)");
+		exit(0);
+	}
+	if (!ParseDB(sFileName.c_str())) {
+		WriteConsole("Failed to load binary database " +  std::filesystem::absolute(sFileName).string() + "!");
 	}
 	return 0;
 }

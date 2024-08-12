@@ -554,8 +554,14 @@ int main(int argc, char *argv[]) {
 		WriteConsole("Usage: FlatOut2DBMaker_gcp.exe <filename>");
 		return 0;
 	}
-	if (!WriteDB(argv[1])) {
-		WriteConsole("Failed to make binary database " + (std::string)argv[1] + "!");
+	std::string sFileName = argv[1];
+	auto folderName = sFileName + " extracted";
+	if (!std::filesystem::exists(folderName)) {
+		WriteConsole("Failed to load " + std::filesystem::absolute(folderName).string() + "! (File doesn't exist)");
+		exit(0);
+	}
+	if (!WriteDB(sFileName)) {
+		WriteConsole("Failed to make binary database " +  std::filesystem::absolute(sFileName).string() + "!");
 	}
 	return 0;
 }
