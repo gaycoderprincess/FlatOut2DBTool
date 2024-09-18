@@ -76,7 +76,11 @@ std::string GetSectionOfString(const std::string& in, size_t start, size_t len) 
 }
 
 tDBNodeTemp* GetDBValueNodePtr(std::string string) {
-	if (!string.starts_with("\"")) return nullptr;
+	auto orig = string;
+	if (!string.starts_with("\"")) {
+		WriteConsole("ERROR: Invalid format for line " + orig);
+		return nullptr;
+	}
 	string.erase(string.begin());
 	if (string.ends_with("\"")) {
 		string.pop_back();
@@ -85,7 +89,10 @@ tDBNodeTemp* GetDBValueNodePtr(std::string string) {
 		string.pop_back();
 		string.pop_back();
 	}
-	else return nullptr;
+	else {
+		WriteConsole("ERROR: Invalid format for line " + orig);
+		return nullptr;
+	}
 
 	auto pNode = GetNodeForPath(dbBaseFolderPath.string() + "/" + string, false);
 	if (!pNode) {
