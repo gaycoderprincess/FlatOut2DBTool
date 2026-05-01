@@ -152,8 +152,6 @@ struct __attribute__((packed, aligned(1))) tDBValue {
 	}
 };
 
-bool DoesNodeHaveChildren(tDBNode* node);
-
 struct tDBNode {
 	uint32_t vtable;			// +0
 	int16_t parentOffset;		// +4
@@ -218,7 +216,7 @@ struct tDBNode {
 		auto filePath = outFolder + "/" + GetFullPath();
 		if (DoesAnythingDependOnMe()) std::filesystem::create_directory(filePath);
 
-		if (dataCount > 0 || !DoesNodeHaveChildren(this)) {
+		if (dataCount > 0 || !DoesAnythingDependOnMe()) {
 			auto outFile = std::ofstream(filePath + ".h");
 			for (int j = 0; j < dataCount; j++) {
 				GetValue(j)->WriteToFile(outFile);
@@ -226,13 +224,6 @@ struct tDBNode {
 		}
 	}
 };
-
-bool DoesNodeHaveChildren(tDBNode* node) {
-	for (int i = 0; i < nNumNodes; i++) {
-		if (node[i].GetParent() == node) return true;
-	}
-	return false;
-}
 
 std::string GetFullPathForDBNode(int id) {
 	return pRootNode[id].GetFullPath();
